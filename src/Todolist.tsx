@@ -1,5 +1,5 @@
 import {ChangeEvent, KeyboardEvent, useState} from 'react';
-import {FilterValuesType} from './App';
+import {type FilterValuesType, type TasksStateType} from "./App";
 
 export type TaskType = {
     id: string
@@ -10,11 +10,11 @@ export type TaskType = {
 type PropsType = {
     todolistId: string
     title: string
-    tasks: Array<TaskType>
+    tasks: TasksStateType
     removeTask: (todolistId: string, taskId: string) => void
     changeFilter: (todolistId: string, value: FilterValuesType) => void
     addTask: (todolistId: string, title: string) => void
-    changeTaskStatus: (todolistId: string, taskId: string, isDone: boolean) => void
+    changeTaskStatus: (payload: {todolistId: string, taskId: string, isDone: boolean}) => void
     filter: FilterValuesType
     removeTodolist: (todolistId: string) => void
 }
@@ -52,6 +52,14 @@ export const Todolist = (props: PropsType)=> {
         props.removeTodolist(props.todolistId)
     }
 
+    let tasksForTodolist = props.tasks[props.todolistId].data;
+    if (props.tasks[props.todolistId].filter === "active") {
+        tasksForTodolist = props.tasks[props.todolistId].data.filter(t => !t.isDone);
+    }
+    if (props.tasks[props.todolistId].filter === "completed") {
+        tasksForTodolist = props.tasks[props.todolistId].data.filter(t => t.isDone);
+    }
+
     return <div>
         <h3>
             {props.title}
@@ -69,10 +77,10 @@ export const Todolist = (props: PropsType)=> {
         </div>
         <ul>
             {
-                props.tasks.map(t => {
+                tasksForTodolist.map(t => {
                     const onClickHandler = () => props.removeTask(props.todolistId, t.id)
                     const onChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {
-                        props.changeTaskStatus(props.todolistId, t.id, e.currentTarget.checked);
+                        props.changeTaskStatus({todolistId: props.todolistId, taskId: t.id, isDone: e.currentTarget.checked});
                     }
 
                     return <li key={t.id} className={t.isDone ? "is-done" : ""}>
